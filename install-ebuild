@@ -1,17 +1,32 @@
 #!/bin/bash
 
-file="$1"  # File from user call.
-
-
-# Check if file exists.
-if [ -f $file ]; then
-
-echo "file exists!"
-
-else
-echo "file not found"
+# Check for root
+if [ "$(whoami)" != "root" ]; then
+    echo "Sorry, you are not root. Root previleges necessery foor making additions to portage tree."
+    exit 1
 fi
 
+file="$1"  # File from user call.
 
+# Check if file exists.
+echo
+if [ -f $file ]; then
+    echo "ebuild found."
+else
+    echo "ebuild file not found!"
+    echo "Usage: install-ebuild /path/to/ebuild/file" 
+    exit 1
+fi
 
+# Choose category
+echo
+read -p "Choose your category (check number) and then press Q to quit listing." -n1 -s
+for i in $(ls -d /usr/portage/* | sed 's/.*\///'); do echo ${i%%/}; done | less -N
+echo 
+echo -n "Enter category number: "
+read categoryNumber
+if [ ! "$categoryNumber" -eq "$categoryNumber" ] 2>/dev/null; then
+    echo "Error: not a number!"
+    exit 1
+fi
 
