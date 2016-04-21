@@ -1,2 +1,17 @@
 #!/bin/bash
 
+file="$1"  # File from user call.
+
+
+# Check if file exists.
+if [ -f $file ]; then
+
+echo "file exists!"
+
+else
+echo "file not found"
+fi
+
+
+
+
