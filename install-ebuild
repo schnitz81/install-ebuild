@@ -1,16 +1,31 @@
 #!/bin/bash
 
+# Check if inparameter is provided.
+if [ "$#" -ne 1 ]; then
+    echo "Usage: install-ebuild /path/to/foo-9999.ebuild"
+    exit 1
+fi
+
 # Check for root
 if [ "$(whoami)" != "root" ]; then
-    echo "Sorry, you are not root. Root previleges necessary foor making additions to portage tree."
+    echo "Sorry, you are not root. Root previleges necessary for making additions to portage tree."
     exit 1
 fi
 
 file="$1"  # File from user call.
 filename=$(basename $file)  # Filename from path.
 
+
+#debug:
+echo
+echo "File: $file"
+echo "Filename: $filename"
+echo
+#######
+
+
 # Check if given file contains .ebuild in filename.
-if ! grep -qs '.ebuild' $filename; then
+if ! ls -l $file | grep -qs ".ebuild";  then
     echo 	
     echo "Filename must be named *.ebuild!"
     exit 1
@@ -35,7 +50,7 @@ echo -n "Enter category number: "
 read categoryNumber
 
 # Quit if chosen to.
-if [ "$categoryNumber" == "q"  ] || [ $categoryNumber == "Q"  ] ; then
+if [ "$categoryNumber" == 'q' ] || [ "$categoryNumber" == 'Q' ] ; then
     echo "quit..." 
     echo
     exit 0
@@ -52,7 +67,7 @@ categoryPath=`ls -d /usr/portage/* | grep -v '\.' | head -n $categoryNumber| tai
 echo
 
 # Confirm category.
-echo -n "Category $categoryPath" | cut -d '/' -f4 && echo " chosen."
+echo -n "Category $categoryPath" | cut -d '/' -f4  && echo " chosen."
 echo -n "Is this OK? (y/n) "
 read answer
 while [ "$answer" != 'y' ] && [ "$answer" != 'n' ] && [ "$answer" != 'Y' ] && [ "$answer" != 'N' ] [ "$answer" != 'Q' ] && [ "$answer" != 'q' ]; do
@@ -67,7 +82,71 @@ fi
 # Create new directory
 echo
 echo -n "Suggesting ebuild directory name: "
-echo "$filename" | cut -d '-' -f1
-echo -n "Is this OK? (y/n) "
+echo "$filename" | cut -d '-' -f1			# Future fix to handle more than one dash
+echo
+echo -n "Is this OK? (Choosing n will let you choose name) (y/n) "
+read answer
+while [ "$answer" != 'y' ] && [ "$answer" != 'n' ] && [ "$answer" != 'Y' ] && [ "$answer" != 'N' ] [ "$answer" != 'Q' ] && [ "$answer" != 'q' ]; do
+    echo -ne "Is this OK? (y/n/(q)uit) "
+    read answer
+done
+if [ "$answer" == 'q' ] || [ "$answer" == 'Q' ]; then
+    echo "quit..."
+    exit 0
+elif [ "$answer" == 'y' ] || [ "$answer" == 'Y' ]; then
+    ebuilddir="`echo $filename | cut -d '-' -f1`"             # Future fix to handle more than one dash
+elif [ "$answer" == 'n' ] || [ "$answer" == 'N' ]; then
+    echo -n "Enter directory name: "
+    read ebuilddir
+fi
+echo
+
+if [ -d "$categoryPath/$ebuilddir" ]; then  # Check if ebuild folder already exists. 
+	echo -n "Folder $categoryPath/$ebuilddir already exists. Use it? (y/n/(q)uit) "
+	read answer
+	if [ "$answer" != 'y' ] && [ "$answer" != 'Y' ]; then  # Accept to use old folder.
+		echo "quit..."
+		echo
+		exit 0
+    fi
+else  # If ebuild folder doesn't exist, create it.
+	echo "Trying to create $categoryPath/$ebuilddir"  # DEBUG LINE
+	echo "categoryPath is $categoryPath" #DEBUG LINE
+	echo "ebuilddir is $ebuilddir" #DEBUG LINE
+	CREATEDIR=`mkdir $categoryPath/$ebuilddir`
+	if [ $? != 0 ]; then
+		echo "Folder creation error."
+		echo $CREATEDIR
+		exit 1
+	fi 
+echo
+echo "$categoryPath/$ebuilddir created."
+echo
+fi
+
+# Copy ebuild to ebuild dir.
+read -p "Press any key to copy your ebuild file to $categoryPath/$ebuilddir/ ..." -n1 -s
+echo
+COPYEBUILD=`cp -v $file $categoryPath/$ebuilddir/`
+if [ $? != 0 ]; then
+	echo "File copying error."
+	echo $COPYEBUILD
+	exit 1
+fi 
+echo "Ebuild copied."
+echo
+
+# Create manifest
+read -p "Press any key to create ebuild manifest..." -n1 -s
+cd $categoryPath/$ebuilddir
+CREATEMANIFEST=`ebuild $filename manifest`
+if [ $? != 0 ]; then
+	echo "Manifest creation error."
+	echo $CREATEMANIFEST
+	exit 1
+fi 
+echo "Manifest created."
+echo
 
 
+exit 0;
