@@ -2,7 +2,7 @@
 
 # Check for root
 if [ "$(whoami)" != "root" ]; then
-    echo "Sorry, you are not root. Root previleges necessery foor making additions to portage tree."
+    echo "Sorry, you are not root. Root previleges necessary foor making additions to portage tree."
     exit 1
 fi
 
@@ -25,15 +25,35 @@ for i in $(ls -d /usr/portage/* | sed 's/.*\///'); do echo ${i%%/}; done | grep 
 echo 
 echo -n "Enter category number: "
 read categoryNumber
+
+# Quit if chosen to.
 if [ "$categoryNumber" == "q"  ] || [ $categoryNumber == "Q"  ] ; then
     echo "quit..." 
     echo
     exit 0
 
+# Check if input is a number.
 elif ! [ "$categoryNumber" -eq "$categoryNumber" ] 2>/dev/null; then
     echo "Error: not a number!"
     echo
     exit 1
+fi
+
+# Get category.
+categoryPath=`ls -d /usr/portage/* | grep -v '\.' | head -n $categoryNumber| tail -n 1`
+echo
+
+# Confirm category.
+echo -n "Category $categoryPath" | cut -d '/' -f4 && echo " chosen."
+echo -n "Is this OK? (y/n) "
+read answer
+while [ "$answer" != 'y' ] && [ "$answer" != 'n' ] && [ "$answer" != 'Y' ] && [ "$answer" != 'N' ] [ "$answer" != 'Q' ] && [ "$answer" != 'q' ]; do
+    echo -ne "Is this OK? (y/n/(q)uit) "
+    read answer
+done
+if [ "$answer" != 'y' ] && [ "$answer" != 'Y' ]; then
+    echo "quit..."
+    exit 0
 fi
 
 
