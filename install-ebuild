@@ -7,6 +7,14 @@ if [ "$(whoami)" != "root" ]; then
 fi
 
 file="$1"  # File from user call.
+filename=$(basename $file)  # Filename from path.
+
+# Check if given file contains .ebuild in filename.
+if ! grep -qs '.ebuild' $filename; then
+    echo 	
+    echo "Filename must be named *.ebuild!"
+    exit 1
+fi
 
 # Check if file exists.
 echo
@@ -55,5 +63,11 @@ if [ "$answer" != 'y' ] && [ "$answer" != 'Y' ]; then
     echo "quit..."
     exit 0
 fi
+
+# Create new directory
+echo
+echo -n "Suggesting ebuild directory name: "
+echo "$filename" | cut -d '-' -f1
+echo -n "Is this OK? (y/n) "
 
 
