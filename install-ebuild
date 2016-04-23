@@ -18,7 +18,7 @@ filename=$(basename $file)  # Filename from path.
 
 #debug:
 echo
-echo "File: $file"
+echo "Filepath: $file"
 echo "Filename: $filename"
 echo
 #######
@@ -82,7 +82,7 @@ fi
 # Create new directory
 echo
 echo -n "Suggesting ebuild directory name: "
-echo "$filename" | cut -d '-' -f1			# Future fix to handle more than one dash
+echo "$filename" | sed 's/\(.*\)-.*/\1/'
 echo
 echo -n "Is this OK? (Choosing n will let you choose name) (y/n) "
 read answer
@@ -94,7 +94,7 @@ if [ "$answer" == 'q' ] || [ "$answer" == 'Q' ]; then
     echo "quit..."
     exit 0
 elif [ "$answer" == 'y' ] || [ "$answer" == 'Y' ]; then
-    ebuilddir="`echo $filename | cut -d '-' -f1`"             # Future fix to handle more than one dash
+    ebuilddir="`echo $filename | sed 's/\(.*\)-.*/\1/'`"
 elif [ "$answer" == 'n' ] || [ "$answer" == 'N' ]; then
     echo -n "Enter directory name: "
     read ebuilddir
@@ -104,15 +104,15 @@ echo
 if [ -d "$categoryPath/$ebuilddir" ]; then  # Check if ebuild folder already exists. 
 	echo -n "Folder $categoryPath/$ebuilddir already exists. Use it? (y/n/(q)uit) "
 	read answer
-	if [ "$answer" != 'y' ] && [ "$answer" != 'Y' ]; then  # Accept to use old folder.
+	if [ "$answer" != 'y' ] && [ "$answer" != 'Y' ]; then  # Accept to use old folder?
 		echo "quit..."
 		echo
 		exit 0
     fi
 else  # If ebuild folder doesn't exist, create it.
-	echo "Trying to create $categoryPath/$ebuilddir"  # DEBUG LINE
-	echo "categoryPath is $categoryPath" #DEBUG LINE
-	echo "ebuilddir is $ebuilddir" #DEBUG LINE
+	echo "Trying to create $categoryPath/$ebuilddir"  #DEBUG LINE
+	echo "Category path is $categoryPath" #DEBUG LINE
+	echo "ebuild dir is $ebuilddir" #DEBUG LINE
 	CREATEDIR=`mkdir $categoryPath/$ebuilddir`
 	if [ $? != 0 ]; then
 		echo "Folder creation error."
@@ -146,7 +146,7 @@ if [ $? != 0 ]; then
 	exit 1
 fi 
 echo "Manifest created."
+echo "All done. Ebuild added to portage tree."
 echo
-
 
 exit 0;
